@@ -1,0 +1,12 @@
+{
+	"compilerOptions": {
+		"sourceMap": true,
+		"strict": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"noFallthroughCasesInSwitch": true,
+		"target": "ES5",
+		"noEmitOnError": true,
+		"outDir": "../dist"
+	}
+}

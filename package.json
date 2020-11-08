@@ -1,0 +1,12 @@
+{
+  "scripts": {},
+  "engines": {
+    "node": ">=12"
+  },
+  "dependencies": {
+    "typescript": "file:..\\npm\\TypeScript"
+  },
+  "devDependencies": {
+    "@types/node": "latest"
+  }
+}
