@@ -1,4 +1,5 @@
-import ts from 'typescript/built/local/typescript';
+import ts from 'typescript/built/local/typescriptServices.out.js';
+import Jasmine from './Jasmine.js';
 
 const formatHost: ts.FormatDiagnosticsHost = {
 	getCanonicalFileName: path => path,
@@ -14,20 +15,25 @@ const reportWatchStatusChanged: ts.WatchStatusReporter = diagnostic => {
 	console.info(ts.formatDiagnostic(diagnostic, formatHost));
 };
 
+var jasmine = new Jasmine();
+
 function onProgram(program: ts.EmitAndSemanticDiagnosticsBuilderProgram) {
-	var x: ReturnType<typeof program.getSemanticDiagnosticsOfNextAffectedFile>;
+	let x: ts.AffectedFileResult<readonly ts.Diagnostic[]>;
+	jasmine.specFiles.clear();
 	while (x = program.getSemanticDiagnosticsOfNextAffectedFile()) {
 		let f = x.affected as ts.SourceFile;
 		if (!ts.isExternalModule(f)) {
 			continue;
 		}
 		console.log(f.fileName);
-
 		for (let d of x.result) {
 			reportDiagnostic(d);
 		}
+		if (f.fileName.endsWith('.test.ts')) {
+			jasmine.specFiles.add(f.fileName);
+		}
 	}
-	return program;
+	jasmine.execute();
 }
 
 // Find tsconfig.json
@@ -51,7 +57,11 @@ let host = ts.createWatchCompilerHost(
 	reportDiagnostic,
 	reportWatchStatusChanged,
 );
-host.createProgram = (...args) => onProgram(ts.createEmitAndSemanticDiagnosticsBuilderProgram(...args));
+host.createProgram = (...args) => {
+	let p = ts.createEmitAndSemanticDiagnosticsBuilderProgram(...args);
+	onProgram(p);
+	return p;
+};
 
 // Start compiling and watching
 ts.createWatchProgram(host);

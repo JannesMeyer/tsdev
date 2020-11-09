@@ -6,13 +6,10 @@
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
         "noFallthroughCasesInSwitch": true,
-        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
 		"moduleResolution": "node",
-        "target": "ES2019",
-        "module": "CommonJS"
+        "target": "ES2020",
+        "module": "ES2020"
     },
-    "files": [
-        "tscompile.ts",
-        "tscompile2.ts"
-    ]
+    "exclude": ["src"]
 }

@@ -5,6 +5,7 @@
   "author": "Jannes Meyer",
   "license": "AGPL-3.0-only",
   "description": "",
+  "type": "module",
   "scripts": {
     "start": "tscompile",
     "test": "tscompile --test"
@@ -13,9 +14,11 @@
     "node": ">=12"
   },
   "dependencies": {
+    "jasmine-core": ">=3.6.0",
     "typescript": "file:..\\TypeScript"
   },
   "devDependencies": {
+    "@types/jasmine": "^3.6.1",
     "@types/node": "latest"
   }
 }
