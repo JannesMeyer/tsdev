@@ -1,4 +1,4 @@
-import ts from 'typescript/built/local/typescriptServices.out.js';
+import ts from 'typescript/built/local/typescript';
 import Jasmine from './Jasmine.js';
 
 const formatHost: ts.FormatDiagnosticsHost = {
@@ -42,17 +42,17 @@ if (!configPath) {
 	throw new Error('Could not find tsconfig.json');
 }
 
+let sys = Object.assign({}, ts.sys);
+sys.writeFile = (...args) => {
+	console.log('write', args[0]);
+	return ts.sys.writeFile(...args);
+};
+
 // Create WatchCompilerHost
 let host = ts.createWatchCompilerHost(
 	configPath,
 	{},
-	{
-		...ts.sys,
-		writeFile(...args) {
-			console.log('write', args[0]);
-			return ts.sys.writeFile(...args);
-		},
-	},
+	sys,
 	ts.createEmitAndSemanticDiagnosticsBuilderProgram,
 	reportDiagnostic,
 	reportWatchStatusChanged,

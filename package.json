@@ -5,7 +5,6 @@
   "author": "Jannes Meyer",
   "license": "AGPL-3.0-only",
   "description": "",
-  "type": "module",
   "scripts": {
     "start": "tscompile",
     "test": "tscompile --test"
