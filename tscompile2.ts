@@ -1,38 +1,28 @@
-import ts from 'typescript/built/local/typescriptServices.out';
+import ts from 'typescript/built/local/typescript';
 
-function watchMain() {
-	let configPath = ts.findConfigFile('./src', ts.sys.fileExists, 'tsconfig.json');
-	if (!configPath) {
-		throw new Error('Could not find tsconfig.json');
-	}
+const formatHost: ts.FormatDiagnosticsHost = {
+	getCanonicalFileName: path => path,
+	getCurrentDirectory: ts.sys.getCurrentDirectory,
+	getNewLine: () => ts.sys.newLine,
+};
 
-	let host = ts.createWatchCompilerHost(
-		configPath,
-		{},
-		{
-			...ts.sys,
-			writeFile(...args) {
-				console.log('write file', ...args);
-				return ts.sys.writeFile(...args);
-			},
-		},
-		ts.createEmitAndSemanticDiagnosticsBuilderProgram,
-		reportDiagnostic,
-		reportWatchStatusChanged,
-	);
-	host.createProgram = (...args) => onProgram(ts.createEmitAndSemanticDiagnosticsBuilderProgram(...args));
-	ts.createWatchProgram(host);
-	console.log(host);
-}
+const reportDiagnostic: ts.DiagnosticReporter = diagnostic => {
+	console.error('Error', diagnostic.code, ':', ts.flattenDiagnosticMessageText(diagnostic.messageText, formatHost.getNewLine()));
+};
+
+const reportWatchStatusChanged: ts.WatchStatusReporter = diagnostic => {
+	console.info(ts.formatDiagnostic(diagnostic, formatHost));
+};
 
 function onProgram(program: ts.EmitAndSemanticDiagnosticsBuilderProgram) {
 	var x: ReturnType<typeof program.getSemanticDiagnosticsOfNextAffectedFile>;
 	while (x = program.getSemanticDiagnosticsOfNextAffectedFile()) {
 		let f = x.affected as ts.SourceFile;
-		if (f.isDeclarationFile) {
+		if (!ts.isExternalModule(f)) {
 			continue;
 		}
-		console.log(f);
+		console.log(f.fileName);
+
 		for (let d of x.result) {
 			reportDiagnostic(d);
 		}
@@ -40,18 +30,28 @@ function onProgram(program: ts.EmitAndSemanticDiagnosticsBuilderProgram) {
 	return program;
 }
 
-function reportDiagnostic(diagnostic: ts.Diagnostic) {
-	console.error('Error', diagnostic.code, ':', ts.flattenDiagnosticMessageText(diagnostic.messageText, formatHost.getNewLine()));
+// Find tsconfig.json
+let configPath = ts.findConfigFile('./src', ts.sys.fileExists, 'tsconfig.json');
+if (!configPath) {
+	throw new Error('Could not find tsconfig.json');
 }
 
-function reportWatchStatusChanged(diagnostic) {
-	console.info(ts.formatDiagnostic(diagnostic, formatHost));
-}
+// Create WatchCompilerHost
+let host = ts.createWatchCompilerHost(
+	configPath,
+	{},
+	{
+		...ts.sys,
+		writeFile(...args) {
+			console.log('write', args[0]);
+			return ts.sys.writeFile(...args);
+		},
+	},
+	ts.createEmitAndSemanticDiagnosticsBuilderProgram,
+	reportDiagnostic,
+	reportWatchStatusChanged,
+);
+host.createProgram = (...args) => onProgram(ts.createEmitAndSemanticDiagnosticsBuilderProgram(...args));
 
-const formatHost = {
-	getCanonicalFileName: path => path,
-	getCurrentDirectory: ts.sys.getCurrentDirectory,
-	getNewLine: () => ts.sys.newLine
-};
-
-watchMain();
+// Start compiling and watching
+ts.createWatchProgram(host);

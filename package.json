@@ -1,10 +1,19 @@
 {
-  "scripts": {},
+  "name": "@jannes/tscompile",
+  "version": "0.0.1",
+  "main": "tscompile2.js",
+  "author": "Jannes Meyer",
+  "license": "AGPL-3.0-only",
+  "description": "",
+  "scripts": {
+    "start": "tscompile",
+    "test": "tscompile --test"
+  },
   "engines": {
     "node": ">=12"
   },
   "dependencies": {
-    "typescript": "file:..\\npm\\TypeScript"
+    "typescript": "file:..\\TypeScript"
   },
   "devDependencies": {
     "@types/node": "latest"
