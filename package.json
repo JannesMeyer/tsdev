@@ -4,6 +4,7 @@
   "main": "tscompile2.js",
   "author": "Jannes Meyer",
   "license": "AGPL-3.0-only",
+  "type": "module",
   "description": "",
   "scripts": {
     "start": "tscompile",

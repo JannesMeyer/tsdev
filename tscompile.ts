@@ -1,6 +1,7 @@
 import ts from 'typescript/built/local/typescript';
 
 function compile(fileNames: string[], options: ts.CompilerOptions) {
+	options.listEmittedFiles = true;
 	let program = ts.createProgram(fileNames, options);
 	let emitResult = program.emit();
 	for (let diagnostic of emitResult.diagnostics) {

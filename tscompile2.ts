@@ -1,4 +1,4 @@
-import ts from 'typescript/built/local/typescript';
+import ts from 'typescript/built/local/typescript.js';
 import Jasmine from './Jasmine.js';
 
 const formatHost: ts.FormatDiagnosticsHost = {
@@ -17,49 +17,46 @@ const reportWatchStatusChanged: ts.WatchStatusReporter = diagnostic => {
 
 var jasmine = new Jasmine();
 
-function onProgram(program: ts.EmitAndSemanticDiagnosticsBuilderProgram) {
-	let x: ts.AffectedFileResult<readonly ts.Diagnostic[]>;
-	jasmine.specFiles.clear();
-	while (x = program.getSemanticDiagnosticsOfNextAffectedFile()) {
-		let f = x.affected as ts.SourceFile;
-		if (!ts.isExternalModule(f)) {
-			continue;
-		}
-		console.log(f.fileName);
-		for (let d of x.result) {
-			reportDiagnostic(d);
-		}
-		if (f.fileName.endsWith('.test.ts')) {
-			jasmine.specFiles.add(f.fileName);
-		}
-	}
-	jasmine.execute();
-}
-
 // Find tsconfig.json
 let configPath = ts.findConfigFile('./src', ts.sys.fileExists, 'tsconfig.json');
 if (!configPath) {
 	throw new Error('Could not find tsconfig.json');
 }
 
-let sys = Object.assign({}, ts.sys);
-sys.writeFile = (...args) => {
-	console.log('write', args[0]);
-	return ts.sys.writeFile(...args);
-};
-
 // Create WatchCompilerHost
 let host = ts.createWatchCompilerHost(
 	configPath,
-	{},
-	sys,
+	{ listEmittedFiles: true },
+	ts.sys,
 	ts.createEmitAndSemanticDiagnosticsBuilderProgram,
 	reportDiagnostic,
 	reportWatchStatusChanged,
 );
 host.createProgram = (...args) => {
 	let p = ts.createEmitAndSemanticDiagnosticsBuilderProgram(...args);
-	onProgram(p);
+	//let x: ts.AffectedFileResult<readonly ts.Diagnostic[]>;
+	jasmine.clear();
+	// while (x = p.getSemanticDiagnosticsOfNextAffectedFile()) {
+	// 	let f = x.affected as ts.SourceFile;
+	// 	if (!ts.isExternalModule(f)) {
+	// 		continue;
+	// 	}
+	// 	console.log(f.fileName);
+	// 	for (let d of x.result) {
+	// 		reportDiagnostic(d);
+	// 	}
+	// }
+	let { emit } = p;
+	p.emit = function myEmit(...emitArgs) {
+		let emitResult = emit(...emitArgs);
+		for (let f of emitResult.emittedFiles ?? []) {
+			if (f.endsWith('.test.js')) {
+				jasmine.specFiles.add(f);
+			}
+		}
+		jasmine.execute(); // Start async run
+		return emitResult;
+	};
 	return p;
 };
 

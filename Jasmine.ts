@@ -28,6 +28,11 @@ export default class Jasmine {
 		Object.assign(global, { expect, expectAsync, fail, pending, setSpecProperty, setSuiteProperty, spyOn, spyOnAllFunctions, spyOnProperty });
 	}
 
+    clear() {
+        this.specFiles.clear();
+        this.helperFiles.clear();
+    }
+
 	async execute() {
         await Promise.all(Array.from(this.helperFiles, f => import('file://' + f)));
         await Promise.all(Array.from(this.specFiles, f => import('file://' + f)));
