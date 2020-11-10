@@ -15,7 +15,7 @@ const reportWatchStatusChanged: ts.WatchStatusReporter = diagnostic => {
 	console.info(ts.formatDiagnostic(diagnostic, formatHost));
 };
 
-var jasmine = new Jasmine();
+var jasmine = new Jasmine('.test.js');
 
 // Find tsconfig.json
 let configPath = ts.findConfigFile('./src', ts.sys.fileExists, 'tsconfig.json');
@@ -50,7 +50,7 @@ host.createProgram = (...args) => {
 	p.emit = function myEmit(...emitArgs) {
 		let emitResult = emit(...emitArgs);
 		for (let f of emitResult.emittedFiles ?? []) {
-			if (f.endsWith('.test.js')) {
+			if (f.endsWith(jasmine.ext)) {
 				jasmine.specFiles.add(f);
 			}
 		}

@@ -1,27 +1,13 @@
-export default class CompletionReporter {
+export default class CompletionReporter implements jasmine.CustomReporter {
 
-	onCompleteCallback: (passed: boolean) => void = () => {};
-	exitHandler?: () => void;
 	completed = false;
 
-	isComplete = () => this.completed;
+	jasmineStarted() {
+		console.log('jasmine started');
+	}
 
-	onComplete = (callback: (passed: boolean) => void) => {
-		this.onCompleteCallback = callback;
-	};
-
-	jasmineStarted = () => {
-		if (this.exitHandler) {
-			process.on('exit', this.exitHandler);
-		}
-	};
-
-	jasmineDone = (result: any) => {
+	jasmineDone(result: any) {
 		this.completed = true;
-		if (this.exitHandler) {
-			process.removeListener('exit', this.exitHandler);
-		}
-
-		this.onCompleteCallback(result.overallStatus === 'passed');
-	};
+		console.log(result);
+	}
 }
