@@ -1,5 +1,7 @@
 import ts from 'typescript/built/local/typescript.js';
-import Jasmine from './Jasmine.js';
+import Jasmine from './workers/Jasmine.js';
+
+const ext = '.test.js';
 
 const formatHost: ts.FormatDiagnosticsHost = {
 	getCanonicalFileName: path => path,
@@ -14,8 +16,6 @@ const reportDiagnostic: ts.DiagnosticReporter = diagnostic => {
 const reportWatchStatusChanged: ts.WatchStatusReporter = diagnostic => {
 	console.info(ts.formatDiagnostic(diagnostic, formatHost));
 };
-
-var jasmine = new Jasmine('.test.js');
 
 // Find tsconfig.json
 let configPath = ts.findConfigFile('./src', ts.sys.fileExists, 'tsconfig.json');
@@ -35,7 +35,7 @@ let host = ts.createWatchCompilerHost(
 host.createProgram = (...args) => {
 	let p = ts.createEmitAndSemanticDiagnosticsBuilderProgram(...args);
 	//let x: ts.AffectedFileResult<readonly ts.Diagnostic[]>;
-	jasmine.clear();
+	var jasmine = new Jasmine(ext);
 	// while (x = p.getSemanticDiagnosticsOfNextAffectedFile()) {
 	// 	let f = x.affected as ts.SourceFile;
 	// 	if (!ts.isExternalModule(f)) {
