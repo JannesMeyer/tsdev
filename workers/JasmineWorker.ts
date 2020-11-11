@@ -1,19 +1,23 @@
 import jasmineCore from 'jasmine-core';
-import path from 'path';
-import util from 'util';
 import CompletionReporter from './CompletionReporter.js';
+import type WorkerMessage from './WorkerMessage.js';
 
-const writeStdOut = util.promisify(process.stdout.write);
-const writeStdErr = util.promisify(process.stderr.write);
+process.on('message', handleMessage);
+process.send!({ message: 'ready' });
 
-export default class Jasmine {
+function handleMessage(m: WorkerMessage) {
+  console.log('JasmineWorker got message:', m);
+	if (m.message === 'test') {
+		new JasmineWorker(m.suites).execute();
+	}
+}
+
+class JasmineWorker {
 
 	env;
 	specials;
-	helperFiles = new Set<string>();
-	specFiles = new Set<string>();
 
-	constructor(readonly ext: string) {
+	constructor(readonly suites: string[]) {
 		let jsm = jasmineCore.core(jasmineCore);
 		this.env = jsm.getEnv({
 			suppressLoadErrors: true,
@@ -25,18 +29,12 @@ export default class Jasmine {
 			random: false
 		});
 		this.specials = jasmineCore.interface(jsm, this.env);
-        Object.assign(global, this.specials);
+		Object.assign(global, this.specials);
 	}
 
-    clear() {
-        this.specFiles.clear();
-        this.helperFiles.clear();
-    }
-
 	async execute() {
-        await Promise.all(Array.from(this.helperFiles, f => import('file://' + f)));
-		await Promise.all(Array.from(this.specFiles, f => import('file://' + f).then((suite => {
-			describe(path.basename(f, this.ext), () => {
+		await Promise.all(this.suites.map(f => import('file://' + f).then((suite => {
+			describe(f, () => {
 				for (let [n, fn] of Object.entries<jasmine.ImplementationCallback & { x?: boolean, f?: boolean }>(suite)) {
 					if (this.specials.hasOwnProperty(n)) {
 						this.specials[n](fn);
@@ -50,13 +48,12 @@ export default class Jasmine {
 				}
 			});
 		}))));
-		console.log(this.env);
 		let reporter = new CompletionReporter();
 		this.env.addReporter(reporter);
 		await new Promise(resolve => this.env.execute(undefined, resolve));
 	}
 
-	exitCodeCompletion(_passed: boolean) {
-		//Promise.all([writeStdErr(''), writeStdOut('')]).then(() => process.exit(passed ? 0 : 1));
-	}
+	// exitCodeCompletion(_passed: boolean) {
+	// 	//Promise.all([writeStdErr(''), writeStdOut('')]).then(() => process.exit(passed ? 0 : 1));
+	// }
 }

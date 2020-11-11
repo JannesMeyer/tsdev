@@ -1,5 +1,6 @@
 import ts from 'typescript/built/local/typescript.js';
-import Jasmine from './workers/Jasmine.js';
+import cp from 'child_process';
+import WorkerMessage from './workers/WorkerMessage.js';
 
 const ext = '.test.js';
 
@@ -35,7 +36,6 @@ let host = ts.createWatchCompilerHost(
 host.createProgram = (...args) => {
 	let p = ts.createEmitAndSemanticDiagnosticsBuilderProgram(...args);
 	//let x: ts.AffectedFileResult<readonly ts.Diagnostic[]>;
-	var jasmine = new Jasmine(ext);
 	// while (x = p.getSemanticDiagnosticsOfNextAffectedFile()) {
 	// 	let f = x.affected as ts.SourceFile;
 	// 	if (!ts.isExternalModule(f)) {
@@ -49,12 +49,7 @@ host.createProgram = (...args) => {
 	let { emit } = p;
 	p.emit = function myEmit(...emitArgs) {
 		let emitResult = emit(...emitArgs);
-		for (let f of emitResult.emittedFiles ?? []) {
-			if (f.endsWith(jasmine.ext)) {
-				jasmine.specFiles.add(f);
-			}
-		}
-		jasmine.execute(); // Start async run
+		runTests(emitResult.emittedFiles?.filter(f => f.endsWith(ext)));
 		return emitResult;
 	};
 	return p;
@@ -62,3 +57,18 @@ host.createProgram = (...args) => {
 
 // Start compiling and watching
 ts.createWatchProgram(host);
+
+function runTests(suites: string[] | undefined) {
+	if (suites == null || suites.length === 0) {
+			return;
+	}
+	let n = cp.fork('./workers/JasmineWorker.js', { silent: false });
+	n.on('message', (m: WorkerMessage) => {
+		if (m.message === 'ready') {
+			n.send({ message: 'test', suites }, err => err && console.error(err))
+
+		} else if (m.message === 'testResult') {
+			console.log(n);
+		}
+	});
+}
