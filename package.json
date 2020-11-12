@@ -2,7 +2,7 @@
 	"name": "@jannes/tsdev",
 	"version": "0.0.1",
 	"author": "Jannes Meyer",
-	"license": "AGPL-3.0-only",
+	"license": "CC-BY-NC-ND-4.0",
 	"type": "module",
 	"description": "",
 	"scripts": {
