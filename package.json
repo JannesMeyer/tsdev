@@ -1,15 +1,14 @@
 {
-	"name": "@jannes/tscompile",
+	"name": "@jannes/tsdev",
 	"version": "0.0.1",
-	"main": "tscompile2.js",
 	"author": "Jannes Meyer",
 	"license": "AGPL-3.0-only",
 	"type": "module",
 	"description": "",
 	"scripts": {
-		"start": "tscompile",
+		"start": "tsdev",
 		"clean": "git clean -xf",
-		"test": "tscompile --test"
+		"test": "tsdev test all"
 	},
 	"engines": {
 		"node": ">=12"
