@@ -1,6 +1,6 @@
 import ts from 'typescript/built/local/typescript.js';
-import cp from 'child_process';
-import WorkerMessage from './workers/WorkerMessage.js';
+import { Worker } from 'worker_threads';
+import { MessageFromWorker } from './workers/WorkerMessage.js';
 
 const ext = '.test.js';
 
@@ -62,13 +62,13 @@ function runTests(suites: string[] | undefined) {
 	if (suites == null || suites.length === 0) {
 			return;
 	}
-	let n = cp.fork('./workers/JasmineWorker.js', { silent: false });
-	n.on('message', (m: WorkerMessage) => {
-		if (m.message === 'ready') {
-			n.send({ message: 'test', suites }, err => err && console.error(err))
-
-		} else if (m.message === 'testResult') {
+	let n = new Worker('./workers/JasmineWorker.js', { workerData: suites });
+	let { threadId } = n;
+	n.on('message', (m: MessageFromWorker) => {
+		if (m.message === 'testResult') {
 			console.log(n);
 		}
 	});
+	n.on('exit', exitCode => console.log(`worker thread ${threadId} exit`, exitCode));
+	n.on('error', e => console.error(`worker thread ${threadId} error`, e));
 }

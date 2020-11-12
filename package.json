@@ -19,7 +19,7 @@
 		"typescript": "file:..\\TypeScript"
 	},
 	"devDependencies": {
-		"@types/jasmine": "^3.6.1",
-		"@types/node": "latest"
+		"@types/jasmine": ">=3.6.1",
+		"@types/node": ">=14.14.7"
 	}
 }

@@ -1,16 +1,10 @@
 import jasmineCore from 'jasmine-core';
-import CompletionReporter from './CompletionReporter.js';
-import type WorkerMessage from './WorkerMessage.js';
+import { workerData, parentPort, isMainThread, threadId } from 'worker_threads';
+import type { MessageFromWorker } from './WorkerMessage.js';
 
-process.on('message', handleMessage);
-process.send!({ message: 'ready' });
+console.log('worker thread', threadId);
 
-function handleMessage(m: WorkerMessage) {
-  console.log('JasmineWorker got message:', m);
-	if (m.message === 'test') {
-		new JasmineWorker(m.suites).execute();
-	}
-}
+const send = (message: MessageFromWorker) => parentPort?.postMessage(message);
 
 class JasmineWorker {
 
@@ -57,3 +51,18 @@ class JasmineWorker {
 	// 	//Promise.all([writeStdErr(''), writeStdOut('')]).then(() => process.exit(passed ? 0 : 1));
 	// }
 }
+
+class CompletionReporter implements jasmine.CustomReporter {
+
+	jasmineStarted() {
+	}
+
+	jasmineDone(result: jasmine.RunDetails) {
+		send({ message: 'testResult', result })
+	}
+}
+
+if (isMainThread) {
+	throw new Error('Needs to run in a worker thread');
+}
+new JasmineWorker(workerData).execute();

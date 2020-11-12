@@ -4,12 +4,12 @@
 		"sourceMap": false,
 		"strict": true,
 		"noUnusedParameters": true,
-        "noFallthroughCasesInSwitch": true,
-        "allowSyntheticDefaultImports": true,
+		"noFallthroughCasesInSwitch": true,
+		"allowSyntheticDefaultImports": true,
 		"moduleResolution": "node",
-        "target": "ES2020",
-        "module": "ES2020",
-        "esModuleInterop": true
-    },
-    "exclude": ["src"]
+		"target": "ES2020",
+		"module": "ES2020",
+		"esModuleInterop": true
+	},
+	"exclude": ["src"]
 }
